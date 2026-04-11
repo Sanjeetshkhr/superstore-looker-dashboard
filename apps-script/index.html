@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #F5F7FA; color: #2D3748; }
+    h1 { color: #0C2340; }
+    p { color: #4A5568; }
+    .btn { background: #00B2A9; color: #FFFFFF; border: none; padding: 12px 28px;
+           border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; }
+    .btn:hover { background: #009890; }
+    .btn:disabled { background: #ccc; cursor: wait; }
+    #status { margin-top: 16px; padding: 12px; border-radius: 4px; display: none; }
+    .success { background: #e6f4ea; color: #137333; }
+    .error { background: #fce8e6; color: #C5221F; }
+  </style>
+</head>
+<body>
+  <h1>Superstore Dashboard Tools</h1>
+  <p>Use the button below to refresh your dashboard data.</p>
+
+  <button class="btn" id="refreshBtn" onclick="refreshData()">Refresh Report Data</button>
+
+  <div id="status"></div>
+
+  <script>
+    function refreshData() {
+      var btn = document.getElementById('refreshBtn');
+      var status = document.getElementById('status');
+      btn.disabled = true;
+      btn.textContent = 'Processing...';
+      status.style.display = 'none';
+
+      google.script.run
+        .withSuccessHandler(function() {
+          status.textContent = 'Report data refreshed successfully.';
+          status.className = 'success';
+          status.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Refresh Report Data';
+        })
+        .withFailureHandler(function(err) {
+          status.textContent = 'Error: ' + err.message;
+          status.className = 'error';
+          status.style.display = 'block';
+          btn.disabled = false;
+          btn.textContent = 'Refresh Report Data';
+        })
+        .buildReportData();
+    }
+  </script>
+</body>
+</html>

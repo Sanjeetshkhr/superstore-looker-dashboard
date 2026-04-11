@@ -4,3 +4,7 @@ function onOpen() {
         .addItem('Build Report Data', 'buildReportData')
         .addToUi();
 }
+function doGet() {
+  return HtmlService.createHtmlOutputFromFile('index')
+    .setTitle('Superstore Dashboard App');
+}
