@@ -4,7 +4,7 @@ An interactive sales analytics dashboard built with Google Sheets, Google Apps S
 
 ## Live Dashboard
 
-[View the Looker Studio Report](https://lookerstudio.google.com/s/njRDtY_emjs)
+[View the Looker Studio Report](https://lookerstudio.google.com/s/ofwgqfgRBfQ)
 
 ## Tech Stack
 
