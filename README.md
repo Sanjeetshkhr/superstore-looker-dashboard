@@ -50,29 +50,31 @@ Impact of discounting on profitability, sub-category performance heatmap by regi
 State-level sales and profitability, average order value by state, shipping efficiency analysis, and worst performing states.
 
 ## Project Structure
+```
 superstore-looker-dashboard/
-    ├── README.md
-    ├── .gitignore
-    ├── docs/
-    │   ├── dashboard-screenshots/
-    │   └── run-guide.md
-    ├── data/
-    │   ├── raw/
-    │   │   └── Sample-Superstore.csv
-    │   └── processed/
-    │       └── data-dictionary.md
-    ├── apps-script/
-    │   ├── appsscript.json
-    │   ├── Code.js
-    │   ├── DataPrep.js
-    │   └── index.html
-    ├── looker-studio/
-    │   ├── report-design.md
-    │   ├── calculated-fields.md
-    │   └── screenshots/
-    └── setup/
+├── README.md
+├── .gitignore
+├── docs/
+│   ├── dashboard-screenshots/
+│   └── run-guide.md
+├── data/
+│   ├── raw/
+│   │   └── Sample-Superstore.csv
+│   └── processed/
+│       └── data-dictionary.md
+├── apps-script/
+│   ├── appsscript.json
+│   ├── Code.js
+│   ├── DataPrep.js
+│   └── index.html
+├── looker-studio/
+│   ├── report-design.md
+│   ├── calculated-fields.md
+│   └── screenshots/
+└── setup/
     ├── setup-checklist.md
     └── deployment-notes.md
+```
 
 ## What Was Built
 
