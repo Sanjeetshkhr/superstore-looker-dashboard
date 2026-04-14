@@ -5,49 +5,50 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #1a1a2e; color: #e0e0e0; }
+    body { font-family: Arial, sans-serif; background: #f5f7fa; color: #2d3748; }
 
-    .header { background: #16213e; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f3460; }
-    .header h1 { font-size: 20px; color: #e0e0e0; }
+    .header { background: #ffffff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    .header h1 { font-size: 20px; color: #1a202c; }
 
-    .filter-bar { display: flex; gap: 12px; padding: 12px 24px; background: #16213e; border-bottom: 1px solid #0f3460; align-items: flex-end; flex-wrap: wrap; }
+    .filter-bar { display: flex; gap: 12px; padding: 12px 24px; background: #ffffff; border-bottom: 1px solid #e2e8f0; align-items: flex-end; flex-wrap: wrap; }
     .filter-group { display: flex; flex-direction: column; gap: 4px; }
-    .filter-group label { font-size: 11px; color: #a0a0a0; text-transform: uppercase; }
-    .filter-group select, .filter-group input { background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
-    .filter-btn { background: #0f3460; color: #e0e0e0; border: 1px solid #e94560; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-    .filter-btn:hover { background: #e94560; }
-    .reset-btn { background: transparent; color: #e94560; border: 1px solid #e94560; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
-    .reset-btn:hover { background: #e94560; color: #e0e0e0; }
+    .filter-group label { font-size: 11px; color: #718096; text-transform: uppercase; font-weight: 600; }
+    .filter-group select, .filter-group input { background: #ffffff; color: #2d3748; border: 1px solid #cbd5e0; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+    .filter-group select:focus, .filter-group input:focus { outline: none; border-color: #3182ce; box-shadow: 0 0 0 2px rgba(49,130,206,0.2); }
+    .filter-btn { background: #3182ce; color: #ffffff; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .filter-btn:hover { background: #2b6cb0; }
+    .reset-btn { background: transparent; color: #e53e3e; border: 1px solid #e53e3e; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; }
+    .reset-btn:hover { background: #e53e3e; color: #ffffff; }
 
-    .tabs { display: flex; background: #16213e; border-bottom: 1px solid #0f3460; }
-    .tab { padding: 12px 24px; cursor: pointer; color: #a0a0a0; font-size: 14px; border-bottom: 3px solid transparent; }
-    .tab:hover { color: #e0e0e0; }
-    .tab.active { color: #e94560; border-bottom-color: #e94560; }
+    .tabs { display: flex; background: #ffffff; border-bottom: 1px solid #e2e8f0; }
+    .tab { padding: 12px 24px; cursor: pointer; color: #a0aec0; font-size: 14px; font-weight: 600; border-bottom: 3px solid transparent; }
+    .tab:hover { color: #2d3748; }
+    .tab.active { color: #3182ce; border-bottom-color: #3182ce; }
 
     .page { display: none; padding: 20px; }
     .page.active { display: block; }
 
     .kpi-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-    .kpi-card { background: #16213e; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 150px; border: 1px solid #0f3460; }
-    .kpi-card .label { font-size: 12px; color: #a0a0a0; text-transform: uppercase; margin-bottom: 4px; }
-    .kpi-card .value { font-size: 24px; font-weight: bold; color: #e0e0e0; }
-    .kpi-card .value.negative { color: #e94560; }
+    .kpi-card { background: #ffffff; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 150px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .kpi-card .label { font-size: 12px; color: #718096; text-transform: uppercase; margin-bottom: 4px; font-weight: 600; }
+    .kpi-card .value { font-size: 24px; font-weight: bold; color: #1a202c; }
+    .kpi-card .value.negative { color: #e53e3e; }
 
     .chart-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
-    .chart-box { background: #16213e; border-radius: 8px; padding: 16px; flex: 1; min-width: 300px; border: 1px solid #0f3460; }
-    .chart-box h3 { font-size: 14px; color: #a0a0a0; margin-bottom: 12px; }
+    .chart-box { background: #ffffff; border-radius: 8px; padding: 16px; flex: 1; min-width: 300px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .chart-box h3 { font-size: 14px; color: #4a5568; margin-bottom: 12px; font-weight: 600; }
     .chart-box canvas { max-height: 300px; }
 
     .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .data-table th { background: #0f3460; color: #e0e0e0; padding: 10px 12px; text-align: left; }
-    .data-table td { padding: 8px 12px; border-bottom: 1px solid #0f3460; }
-    .data-table tr:hover { background: #1a1a3e; }
-    .cell-negative { color: #e94560; font-weight: bold; }
-    .cell-positive { color: #4ecca3; }
+    .data-table th { background: #edf2f7; color: #2d3748; padding: 10px 12px; text-align: left; font-weight: 600; }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+    .data-table tr:hover { background: #f7fafc; }
+    .cell-negative { color: #e53e3e; font-weight: bold; }
+    .cell-positive { color: #38a169; }
 
-    .loading { text-align: center; padding: 60px; color: #a0a0a0; font-size: 16px; }
-    .table-box { background: #16213e; border-radius: 8px; padding: 16px; border: 1px solid #0f3460; margin-bottom: 20px; }
-    .table-box h3 { font-size: 14px; color: #a0a0a0; margin-bottom: 12px; }
+    .loading { text-align: center; padding: 60px; color: #718096; font-size: 16px; }
+    .table-box { background: #ffffff; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .table-box h3 { font-size: 14px; color: #4a5568; margin-bottom: 12px; font-weight: 600; }
   </style>
 </head>
 <body>
@@ -244,7 +245,7 @@
       var years = [2014, 2015, 2016, 2017];
       var months = [1,2,3,4,5,6,7,8,9,10,11,12];
       var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var colors = ['#e94560','#0f3460','#4ecca3','#f5a623'];
+      var colors = ['#3182ce','#e53e3e','#38a169','#d69e2e'];
 
       var datasets = years.map(function(yr, i) {
         return {
@@ -266,10 +267,10 @@
         data: { labels: monthNames, datasets: datasets },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          plugins: { legend: { labels: { color: '#4a5568' } } },
           scales: {
-            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
-            y: { ticks: { color: '#a0a0a0', callback: function(v) { return '$' + (v/1000) + 'K'; } }, grid: { color: '#0f3460' } }
+            x: { ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } },
+            y: { ticks: { color: '#718096', callback: function(v) { return '$' + (v/1000) + 'K'; } }, grid: { color: '#e2e8f0' } }
           }
         }
       });
@@ -289,12 +290,12 @@
         type: 'pie',
         data: {
           labels: segments,
-          datasets: [{ data: pcts, backgroundColor: ['#e94560','#0f3460','#4ecca3'] }]
+          datasets: [{ data: pcts, backgroundColor: ['#3182ce','#e53e3e','#38a169'] }]
         },
         options: {
           responsive: true,
           plugins: {
-            legend: { labels: { color: '#a0a0a0' } },
+            legend: { labels: { color: '#4a5568' } },
             tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + (ctx.parsed * 100).toFixed(1) + '%'; } } }
           }
         }
@@ -315,17 +316,17 @@
         data: {
           labels: regions,
           datasets: [
-            { label: 'Sales', data: sales, backgroundColor: '#0f3460', yAxisID: 'y' },
-            { label: 'Profit Ratio', data: ratios, backgroundColor: '#e94560', yAxisID: 'y1' }
+            { label: 'Sales', data: sales, backgroundColor: '#3182ce', yAxisID: 'y' },
+            { label: 'Profit Ratio', data: ratios, backgroundColor: '#e53e3e', yAxisID: 'y1' }
           ]
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          plugins: { legend: { labels: { color: '#4a5568' } } },
           scales: {
-            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
-            y: { position: 'left', ticks: { color: '#a0a0a0', callback: function(v) { return '$' + (v/1000) + 'K'; } }, grid: { color: '#0f3460' } },
-            y1: { position: 'right', ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { display: false } }
+            x: { ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } },
+            y: { position: 'left', ticks: { color: '#718096', callback: function(v) { return '$' + (v/1000) + 'K'; } }, grid: { color: '#e2e8f0' } },
+            y1: { position: 'right', ticks: { color: '#718096', callback: function(v) { return fmtPct(v); } }, grid: { display: false } }
           }
         }
       });
@@ -338,7 +339,7 @@
         var d = data.discountBandData[b];
         return d && d.sales !== 0 ? d.profit / d.sales : 0;
       });
-      var colors = ratios.map(function(r) { return r >= 0 ? '#4ecca3' : '#e94560'; });
+      var colors = ratios.map(function(r) { return r >= 0 ? '#38a169' : '#e53e3e'; });
 
       charts['discountChart'] = new Chart(document.getElementById('discountChart'), {
         type: 'bar',
@@ -350,8 +351,8 @@
           responsive: true,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
-            y: { ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { color: '#0f3460' } }
+            x: { ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } },
+            y: { ticks: { color: '#718096', callback: function(v) { return fmtPct(v); } }, grid: { color: '#e2e8f0' } }
           }
         }
       });
@@ -368,16 +369,16 @@
         data: {
           labels: bands,
           datasets: [
-            { label: 'Profitable', data: noData, backgroundColor: '#0f3460' },
-            { label: 'Loss-Making', data: yesData, backgroundColor: '#e94560' }
+            { label: 'Profitable', data: noData, backgroundColor: '#3182ce' },
+            { label: 'Loss-Making', data: yesData, backgroundColor: '#e53e3e' }
           ]
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          plugins: { legend: { labels: { color: '#4a5568' } } },
           scales: {
-            x: { stacked: true, ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
-            y: { stacked: true, ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } }
+            x: { stacked: true, ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } },
+            y: { stacked: true, ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } }
           }
         }
       });
@@ -439,17 +440,17 @@
         data: {
           labels: modes,
           datasets: [
-            { label: 'Profit Ratio', data: ratios, backgroundColor: '#4ecca3', yAxisID: 'y' },
-            { label: 'Order Count', data: orders, backgroundColor: '#e94560', yAxisID: 'y1' }
+            { label: 'Profit Ratio', data: ratios, backgroundColor: '#38a169', yAxisID: 'y' },
+            { label: 'Order Count', data: orders, backgroundColor: '#e53e3e', yAxisID: 'y1' }
           ]
         },
         options: {
           responsive: true,
-          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          plugins: { legend: { labels: { color: '#4a5568' } } },
           scales: {
-            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
-            y: { position: 'left', ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { color: '#0f3460' } },
-            y1: { position: 'right', ticks: { color: '#a0a0a0' }, grid: { display: false } }
+            x: { ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } },
+            y: { position: 'left', ticks: { color: '#718096', callback: function(v) { return fmtPct(v); } }, grid: { color: '#e2e8f0' } },
+            y1: { position: 'right', ticks: { color: '#718096' }, grid: { display: false } }
           }
         }
       });
@@ -468,15 +469,15 @@
         type: 'bar',
         data: {
           labels: worst10.map(function(s) { return s.state; }),
-          datasets: [{ label: 'Profit Ratio', data: worst10.map(function(s) { return s.ratio; }), backgroundColor: '#e94560' }]
+          datasets: [{ label: 'Profit Ratio', data: worst10.map(function(s) { return s.ratio; }), backgroundColor: '#e53e3e' }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           plugins: { legend: { display: false } },
           scales: {
-            x: { ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { color: '#0f3460' } },
-            y: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } }
+            x: { ticks: { color: '#718096', callback: function(v) { return fmtPct(v); } }, grid: { color: '#e2e8f0' } },
+            y: { ticks: { color: '#718096' }, grid: { color: '#e2e8f0' } }
           }
         }
       });
