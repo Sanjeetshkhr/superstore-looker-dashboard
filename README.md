@@ -6,6 +6,8 @@ An interactive sales analytics dashboard built with Google Sheets, Google Apps S
 
 [View the Looker Studio Report](https://lookerstudio.google.com/s/ofwgqfgRBfQ)
 
+[Web App for same report](https://script.google.com/macros/s/AKfycbwEerN78wOwCsUP-_o8BjxHntld46XlaiIqatWsHrEH1GNt89nyrfj-R6zVeOc9x8lz/exec)
+
 ## Tech Stack
 
 - **Google Sheets** — data storage and source of truth
