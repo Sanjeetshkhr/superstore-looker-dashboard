@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #1a1a2e;
+      color: #e0e0e0;
+      padding: 24px;
+    }
+    h1 {
+      text-align: center;
+      color: #00b2a9;
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+    .subtitle {
+      text-align: center;
+      color: #888;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+    .scorecards {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .card {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      border: 1px solid #0f3460;
+    }
+    .card .label {
+      font-size: 12px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .card .value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #00b2a9;
+    }
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .chart-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 20px;
+      border: 1px solid #0f3460;
+    }
+    .chart-box h3 {
+      color: #e0e0e0;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+    .chart-box canvas {
+      width: 100% !important;
+      max-height: 280px;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .loading {
+      text-align: center;
+      padding: 80px;
+      color: #888;
+      font-size: 16px;
+    }
+    .footer {
+      text-align: center;
+      color: #555;
+      font-size: 11px;
+      margin-top: 16px;
+    }
+    @media (max-width: 700px) {
+      .scorecards { grid-template-columns: repeat(2, 1fr); }
+      .charts { grid-template-columns: 1fr; }
+      .card .value { font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Superstore Sales Dashboard</h1>
+  <p class="subtitle">Data sourced from Google Sheets via Apps Script</p>
+
+  <div id="loading" class="loading">Loading dashboard data...</div>
+
+  <div id="dashboard" style="display:none;">
+    <div class="scorecards">
+      <div class="card">
+        <div class="label">Total Sales</div>
+        <div class="value" id="totalSales">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Total Profit</div>
+        <div class="value" id="totalProfit">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Profit Ratio</div>
+        <div class="value" id="profitRatio">—</div>
+      </div>
+      <div class="card">
+        <div class="label">Avg Order Value</div>
+        <div class="value" id="avgOrderValue">—</div>
+      </div>
+    </div>
+
+    <div class="charts">
+      <div class="chart-box">
+        <h3>Sales by Region</h3>
+        <canvas id="regionChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Profit Ratio by Discount Band</h3>
+        <canvas id="discountChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h3>Sales by Category</h3>
+        <canvas id="categoryChart"></canvas>
+      </div>
+      <div class="chart-box full-width">
+        <h3>Monthly Sales Trend</h3>
+        <canvas id="monthlyChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">Built with Google Apps Script, Chart.js & JavaScript</div>
+
+  <script>
+    function formatCurrency(n) {
+      return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function formatPercent(n) {
+      return (n * 100).toFixed(2) + '%';
+    }
+
+    var chartColors = {
+      blue: '#4fc3f7',
+      teal: '#00b2a9',
+      red: '#ef5350',
+      orange: '#ffa726',
+      green: '#66bb6a',
+      purple: '#ab47bc',
+      grid: 'rgba(255,255,255,0.08)',
+      text: '#aaa'
+    };
+
+    var chartDefaults = {
+      responsive: true,
+      plugins: {
+        legend: { labels: { color: chartColors.text, font: { size: 11 } } }
+      },
+      scales: {
+        x: { ticks: { color: chartColors.text, font: { size: 10 } }, grid: { color: chartColors.grid } },
+        y: { ticks: { color: chartColors.text, font: { size: 10 } }, grid: { color: chartColors.grid } }
+      }
+    };
+
+    google.script.run
+      .withSuccessHandler(buildDashboard)
+      .withFailureHandler(function(err) {
+        document.getElementById('loading').textContent = 'Error loading data: ' + err.message;
+      })
+      .getDashboardData();
+
+    function buildDashboard(data) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+
+      // Scorecards
+      document.getElementById('totalSales').textContent = formatCurrency(data.totalSales);
+      document.getElementById('totalProfit').textContent = formatCurrency(data.totalProfit);
+      document.getElementById('profitRatio').textContent = formatPercent(data.profitRatio);
+      document.getElementById('avgOrderValue').textContent = formatCurrency(data.avgOrderValue);
+
+      // Sales by Region
+      var regionLabels = Object.keys(data.salesByRegion);
+      var regionValues = regionLabels.map(function(k) { return data.salesByRegion[k]; });
+      new Chart(document.getElementById('regionChart'), {
+        type: 'bar',
+        data: {
+          labels: regionLabels,
+          datasets: [{
+            label: 'Sales',
+            data: regionValues,
+            backgroundColor: [chartColors.teal, chartColors.blue, chartColors.orange, chartColors.purple]
+          }]
+        },
+        options: Object.assign({}, chartDefaults, {
+          plugins: { legend: { display: false } }
+        })
+      });
+
+      // Profit Ratio by Discount Band
+      var bandOrder = ['No Discount', 'Low', 'Medium', 'High'];
+      var bandValues = bandOrder.map(function(b) { return data.profitRatioByDiscountBand[b] || 0; });
+      var bandColors = bandValues.map(function(v) { return v >= 0 ? chartColors.teal : chartColors.red; });
+      new Chart(document.getElementById('discountChart'), {
+        type: 'bar',
+        data: {
+          labels: bandOrder,
+          datasets: [{
+            label: 'Profit Ratio',
+            data: bandValues,
+            backgroundColor: bandColors
+          }]
+        },
+        options: Object.assign({}, chartDefaults, {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: chartColors.text }, grid: { color: chartColors.grid } },
+            y: {
+              ticks: {
+                color: chartColors.text,
+                callback: function(v) { return (v * 100).toFixed(0) + '%'; }
+              },
+              grid: { color: chartColors.grid }
+            }
+          }
+        })
+      });
+
+      // Sales by Category
+      var catLabels = Object.keys(data.salesByCategory);
+      var catValues = catLabels.map(function(k) { return data.salesByCategory[k]; });
+      new Chart(document.getElementById('categoryChart'), {
+        type: 'doughnut',
+        data: {
+          labels: catLabels,
+          datasets: [{
+            data: catValues,
+            backgroundColor: [chartColors.teal, chartColors.blue, chartColors.orange]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'bottom', labels: { color: chartColors.text, font: { size: 11 } } }
+          }
+        }
+      });
+
+      // Monthly Sales Trend
+      var monthLabels = data.monthlySales.map(function(m) { return m.month; });
+      var monthValues = data.monthlySales.map(function(m) { return m.sales; });
+      new Chart(document.getElementById('monthlyChart'), {
+        type: 'line',
+        data: {
+          labels: monthLabels,
+          datasets: [{
+            label: 'Sales',
+            data: monthValues,
+            borderColor: chartColors.teal,
+            backgroundColor: 'rgba(0,178,169,0.1)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: 0
+          }]
+        },
+        options: Object.assign({}, chartDefaults, {
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: {
+                color: chartColors.text,
+                font: { size: 9 },
+                maxTicksLimit: 12
+              },
+              grid: { color: chartColors.grid }
+            },
+            y: { ticks: { color: chartColors.text }, grid: { color: chartColors.grid } }
+          }
+        })
+      });
+    }
+  </script>
+</body>
+</html>

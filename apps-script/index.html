@@ -2,52 +2,503 @@
 <html>
 <head>
   <base target="_top">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #F5F7FA; color: #2D3748; }
-    h1 { color: #0C2340; }
-    p { color: #4A5568; }
-    .btn { background: #00B2A9; color: #FFFFFF; border: none; padding: 12px 28px;
-           border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: bold; }
-    .btn:hover { background: #009890; }
-    .btn:disabled { background: #ccc; cursor: wait; }
-    #status { margin-top: 16px; padding: 12px; border-radius: 4px; display: none; }
-    .success { background: #e6f4ea; color: #137333; }
-    .error { background: #fce8e6; color: #C5221F; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #1a1a2e; color: #e0e0e0; }
+
+    .header { background: #16213e; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f3460; }
+    .header h1 { font-size: 20px; color: #e0e0e0; }
+
+    .filter-bar { display: flex; gap: 12px; padding: 12px 24px; background: #16213e; border-bottom: 1px solid #0f3460; align-items: flex-end; flex-wrap: wrap; }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: 11px; color: #a0a0a0; text-transform: uppercase; }
+    .filter-group select, .filter-group input { background: #1a1a2e; color: #e0e0e0; border: 1px solid #0f3460; padding: 6px 10px; border-radius: 4px; font-size: 13px; }
+    .filter-btn { background: #0f3460; color: #e0e0e0; border: 1px solid #e94560; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .filter-btn:hover { background: #e94560; }
+    .reset-btn { background: transparent; color: #e94560; border: 1px solid #e94560; padding: 8px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+    .reset-btn:hover { background: #e94560; color: #e0e0e0; }
+
+    .tabs { display: flex; background: #16213e; border-bottom: 1px solid #0f3460; }
+    .tab { padding: 12px 24px; cursor: pointer; color: #a0a0a0; font-size: 14px; border-bottom: 3px solid transparent; }
+    .tab:hover { color: #e0e0e0; }
+    .tab.active { color: #e94560; border-bottom-color: #e94560; }
+
+    .page { display: none; padding: 20px; }
+    .page.active { display: block; }
+
+    .kpi-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .kpi-card { background: #16213e; border-radius: 8px; padding: 16px 20px; flex: 1; min-width: 150px; border: 1px solid #0f3460; }
+    .kpi-card .label { font-size: 12px; color: #a0a0a0; text-transform: uppercase; margin-bottom: 4px; }
+    .kpi-card .value { font-size: 24px; font-weight: bold; color: #e0e0e0; }
+    .kpi-card .value.negative { color: #e94560; }
+
+    .chart-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .chart-box { background: #16213e; border-radius: 8px; padding: 16px; flex: 1; min-width: 300px; border: 1px solid #0f3460; }
+    .chart-box h3 { font-size: 14px; color: #a0a0a0; margin-bottom: 12px; }
+    .chart-box canvas { max-height: 300px; }
+
+    .data-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .data-table th { background: #0f3460; color: #e0e0e0; padding: 10px 12px; text-align: left; }
+    .data-table td { padding: 8px 12px; border-bottom: 1px solid #0f3460; }
+    .data-table tr:hover { background: #1a1a3e; }
+    .cell-negative { color: #e94560; font-weight: bold; }
+    .cell-positive { color: #4ecca3; }
+
+    .loading { text-align: center; padding: 60px; color: #a0a0a0; font-size: 16px; }
+    .table-box { background: #16213e; border-radius: 8px; padding: 16px; border: 1px solid #0f3460; margin-bottom: 20px; }
+    .table-box h3 { font-size: 14px; color: #a0a0a0; margin-bottom: 12px; }
   </style>
 </head>
 <body>
-  <h1>Superstore Dashboard Tools</h1>
-  <p>Use the button below to refresh your dashboard data.</p>
+  <div class="header">
+    <h1>Superstore Dashboard</h1>
+  </div>
 
-  <button class="btn" id="refreshBtn" onclick="refreshData()">Refresh Report Data</button>
+  <div class="filter-bar">
+    <div class="filter-group">
+      <label>Start Date</label>
+      <input type="date" id="filter-start" value="2014-01-01">
+    </div>
+    <div class="filter-group">
+      <label>End Date</label>
+      <input type="date" id="filter-end" value="2017-12-31">
+    </div>
+    <div class="filter-group">
+      <label>Region</label>
+      <select id="filter-region"><option value="All">All</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Segment</label>
+      <select id="filter-segment"><option value="All">All</option></select>
+    </div>
+    <div class="filter-group">
+      <label>Category</label>
+      <select id="filter-category"><option value="All">All</option></select>
+    </div>
+    <button class="filter-btn" onclick="applyFilters()">Apply</button>
+    <button class="reset-btn" onclick="resetFilters()">Reset</button>
+  </div>
 
-  <div id="status"></div>
+  <div class="tabs">
+    <div class="tab active" onclick="showTab(0)">Executive Overview</div>
+    <div class="tab" onclick="showTab(1)">Discount & Loss Analysis</div>
+    <div class="tab" onclick="showTab(2)">Geography Intelligence</div>
+  </div>
+
+  <div id="loading" class="loading">Loading dashboard data...</div>
+
+  <!-- PAGE 1: Executive Overview -->
+  <div class="page" id="page0">
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="label">Total Sales</div><div class="value" id="kpi-sales">—</div></div>
+      <div class="kpi-card"><div class="label">Total Profit</div><div class="value" id="kpi-profit">—</div></div>
+      <div class="kpi-card"><div class="label">Profit Ratio</div><div class="value" id="kpi-ratio">—</div></div>
+      <div class="kpi-card"><div class="label">Avg Order Value</div><div class="value" id="kpi-aov">—</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box" style="flex:2;"><h3>Year on Year Sales</h3><canvas id="yoyChart"></canvas></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><h3>Segment by Profit Ratio</h3><canvas id="segmentChart"></canvas></div>
+      <div class="chart-box"><h3>Sales and Profit Ratio by Region</h3><canvas id="regionChart"></canvas></div>
+    </div>
+  </div>
+
+  <!-- PAGE 2: Discount & Loss Analysis -->
+  <div class="page" id="page1">
+    <div class="kpi-row">
+      <div class="kpi-card"><div class="label">Loss Orders</div><div class="value" id="kpi-lossorders">—</div></div>
+      <div class="kpi-card"><div class="label">Loss Value</div><div class="value negative" id="kpi-lossvalue">—</div></div>
+    </div>
+    <div class="chart-row">
+      <div class="chart-box"><h3>Profit Ratio by Discount Band</h3><canvas id="discountChart"></canvas></div>
+      <div class="chart-box"><h3>Loss Flag by Discount Band</h3><canvas id="lossFlagChart"></canvas></div>
+    </div>
+    <div class="table-box">
+      <h3>Profit Ratio by Sub-Category and Region</h3>
+      <table class="data-table" id="pivotTable"></table>
+    </div>
+  </div>
+
+  <!-- PAGE 3: Geography Intelligence -->
+  <div class="page" id="page2">
+    <div class="chart-row">
+      <div class="chart-box"><h3>Profit Ratio by Ship Mode</h3><canvas id="shipChart"></canvas></div>
+      <div class="chart-box"><h3>Top 10 Worst Performing States</h3><canvas id="stateChart"></canvas></div>
+    </div>
+    <div class="table-box">
+      <h3>Average Order Value by State</h3>
+      <table class="data-table" id="aovTable"></table>
+    </div>
+  </div>
 
   <script>
-    function refreshData() {
-      var btn = document.getElementById('refreshBtn');
-      var status = document.getElementById('status');
-      btn.disabled = true;
-      btn.textContent = 'Processing...';
-      status.style.display = 'none';
+    var charts = {};
+    var appData = null;
+    var currentTab = 0;
+
+    function showTab(index) {
+      currentTab = index;
+      document.querySelectorAll('.tab').forEach(function(t, i) {
+        t.classList.toggle('active', i === index);
+      });
+      document.querySelectorAll('.page').forEach(function(p, i) {
+        p.classList.toggle('active', i === index);
+      });
+    }
+
+    function fmt(n) { return '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+    function fmtPct(n) { return (n * 100).toFixed(2) + '%'; }
+    function fmtInt(n) { return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+
+    function loadData() {
+      document.getElementById('loading').style.display = 'block';
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
 
       google.script.run
-        .withSuccessHandler(function() {
-          status.textContent = 'Report data refreshed successfully.';
-          status.className = 'success';
-          status.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = 'Refresh Report Data';
+        .withSuccessHandler(function(options) {
+          populateFilters(options);
+          applyFilters();
         })
         .withFailureHandler(function(err) {
-          status.textContent = 'Error: ' + err.message;
-          status.className = 'error';
-          status.style.display = 'block';
-          btn.disabled = false;
-          btn.textContent = 'Refresh Report Data';
+          document.getElementById('loading').textContent = 'Error loading filters: ' + err.message;
         })
-        .buildReportData();
+        .getFilterOptions();
     }
+
+    function populateFilters(options) {
+      var regionSelect = document.getElementById('filter-region');
+      var segmentSelect = document.getElementById('filter-segment');
+      var categorySelect = document.getElementById('filter-category');
+
+      regionSelect.innerHTML = '<option value="All">All</option>';
+      segmentSelect.innerHTML = '<option value="All">All</option>';
+      categorySelect.innerHTML = '<option value="All">All</option>';
+
+      options.regions.forEach(function(r) { regionSelect.innerHTML += '<option value="' + r + '">' + r + '</option>'; });
+      options.segments.forEach(function(s) { segmentSelect.innerHTML += '<option value="' + s + '">' + s + '</option>'; });
+      options.categories.forEach(function(c) { categorySelect.innerHTML += '<option value="' + c + '">' + c + '</option>'; });
+    }
+
+    function applyFilters() {
+      document.getElementById('loading').style.display = 'block';
+      document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+
+      var filters = {
+        region: document.getElementById('filter-region').value,
+        segment: document.getElementById('filter-segment').value,
+        category: document.getElementById('filter-category').value,
+        startDate: document.getElementById('filter-start').value,
+        endDate: document.getElementById('filter-end').value
+      };
+
+      google.script.run
+        .withSuccessHandler(function(data) {
+          appData = data;
+          document.getElementById('loading').style.display = 'none';
+          renderAll(data);
+          showTab(currentTab);
+        })
+        .withFailureHandler(function(err) {
+          document.getElementById('loading').textContent = 'Error: ' + err.message;
+        })
+        .getFilteredData(filters);
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-region').value = 'All';
+      document.getElementById('filter-segment').value = 'All';
+      document.getElementById('filter-category').value = 'All';
+      document.getElementById('filter-start').value = '2014-01-01';
+      document.getElementById('filter-end').value = '2017-12-31';
+      applyFilters();
+    }
+
+    function renderAll(data) {
+      document.getElementById('kpi-sales').textContent = fmt(data.totals.sales);
+      document.getElementById('kpi-profit').textContent = fmt(data.totals.profit);
+      document.getElementById('kpi-ratio').textContent = fmtPct(data.totals.profitRatio);
+      document.getElementById('kpi-aov').textContent = fmt(data.totals.aov);
+      document.getElementById('kpi-lossorders').textContent = fmtInt(data.totals.lossOrders);
+      document.getElementById('kpi-lossvalue').textContent = fmt(data.totals.lossValue);
+
+      renderYoYChart(data);
+      renderSegmentChart(data);
+      renderRegionChart(data);
+      renderDiscountChart(data);
+      renderLossFlagChart(data);
+      renderPivotTable(data);
+      renderShipChart(data);
+      renderStateChart(data);
+      renderAovTable(data);
+    }
+
+    function destroyChart(id) {
+      if (charts[id]) { charts[id].destroy(); }
+    }
+
+    function renderYoYChart(data) {
+      destroyChart('yoyChart');
+      var ym = data.yearMonthData;
+      var years = [2014, 2015, 2016, 2017];
+      var months = [1,2,3,4,5,6,7,8,9,10,11,12];
+      var monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+      var colors = ['#e94560','#0f3460','#4ecca3','#f5a623'];
+
+      var datasets = years.map(function(yr, i) {
+        return {
+          label: yr.toString(),
+          data: months.map(function(m) {
+            var key = yr + '-' + m;
+            return ym[key] ? ym[key].sales : 0;
+          }),
+          borderColor: colors[i],
+          backgroundColor: 'transparent',
+          tension: 0.3,
+          borderWidth: 2,
+          pointRadius: 3
+        };
+      });
+
+      charts['yoyChart'] = new Chart(document.getElementById('yoyChart'), {
+        type: 'line',
+        data: { labels: monthNames, datasets: datasets },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          scales: {
+            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
+            y: { ticks: { color: '#a0a0a0', callback: function(v) { return '$' + (v/1000) + 'K'; } }, grid: { color: '#0f3460' } }
+          }
+        }
+      });
+    }
+
+    function renderSegmentChart(data) {
+      destroyChart('segmentChart');
+      var segments = Object.keys(data.segmentData);
+      var ratios = segments.map(function(s) {
+        var d = data.segmentData[s];
+        return d.sales !== 0 ? d.profit / d.sales : 0;
+      });
+      var total = ratios.reduce(function(a,b) { return a+b; }, 0);
+      var pcts = ratios.map(function(r) { return total !== 0 ? r / total : 0; });
+
+      charts['segmentChart'] = new Chart(document.getElementById('segmentChart'), {
+        type: 'pie',
+        data: {
+          labels: segments,
+          datasets: [{ data: pcts, backgroundColor: ['#e94560','#0f3460','#4ecca3'] }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: '#a0a0a0' } },
+            tooltip: { callbacks: { label: function(ctx) { return ctx.label + ': ' + (ctx.parsed * 100).toFixed(1) + '%'; } } }
+          }
+        }
+      });
+    }
+
+    function renderRegionChart(data) {
+      destroyChart('regionChart');
+      var regions = ['West','East','South','Central'];
+      var sales = regions.map(function(r) { return data.regionData[r] ? data.regionData[r].sales : 0; });
+      var ratios = regions.map(function(r) {
+        var d = data.regionData[r];
+        return d && d.sales !== 0 ? d.profit / d.sales : 0;
+      });
+
+      charts['regionChart'] = new Chart(document.getElementById('regionChart'), {
+        type: 'bar',
+        data: {
+          labels: regions,
+          datasets: [
+            { label: 'Sales', data: sales, backgroundColor: '#0f3460', yAxisID: 'y' },
+            { label: 'Profit Ratio', data: ratios, backgroundColor: '#e94560', yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          scales: {
+            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
+            y: { position: 'left', ticks: { color: '#a0a0a0', callback: function(v) { return '$' + (v/1000) + 'K'; } }, grid: { color: '#0f3460' } },
+            y1: { position: 'right', ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderDiscountChart(data) {
+      destroyChart('discountChart');
+      var bands = ['No Discount','Low','Medium','High'];
+      var ratios = bands.map(function(b) {
+        var d = data.discountBandData[b];
+        return d && d.sales !== 0 ? d.profit / d.sales : 0;
+      });
+      var colors = ratios.map(function(r) { return r >= 0 ? '#4ecca3' : '#e94560'; });
+
+      charts['discountChart'] = new Chart(document.getElementById('discountChart'), {
+        type: 'bar',
+        data: {
+          labels: bands,
+          datasets: [{ label: 'Profit Ratio', data: ratios, backgroundColor: colors }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
+            y: { ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { color: '#0f3460' } }
+          }
+        }
+      });
+    }
+
+    function renderLossFlagChart(data) {
+      destroyChart('lossFlagChart');
+      var bands = ['High','Low','Medium','No Discount'];
+      var noData = bands.map(function(b) { return data.lossFlagByDiscount[b + '|No'] || 0; });
+      var yesData = bands.map(function(b) { return data.lossFlagByDiscount[b + '|Yes'] || 0; });
+
+      charts['lossFlagChart'] = new Chart(document.getElementById('lossFlagChart'), {
+        type: 'bar',
+        data: {
+          labels: bands,
+          datasets: [
+            { label: 'Profitable', data: noData, backgroundColor: '#0f3460' },
+            { label: 'Loss-Making', data: yesData, backgroundColor: '#e94560' }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          scales: {
+            x: { stacked: true, ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
+            y: { stacked: true, ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } }
+          }
+        }
+      });
+    }
+
+    function renderPivotTable(data) {
+      var regions = ['West','East','South','Central'];
+      var subCats = {};
+      var keys = Object.keys(data.subCatRegionData);
+      keys.forEach(function(k) {
+        var parts = k.split('|');
+        subCats[parts[0]] = true;
+      });
+
+      var subCatList = Object.keys(subCats).sort(function(a, b) {
+        var aTotal = 0, bTotal = 0;
+        regions.forEach(function(r) {
+          var aKey = a + '|' + r, bKey = b + '|' + r;
+          var aD = data.subCatRegionData[aKey], bD = data.subCatRegionData[bKey];
+          if (aD && aD.sales !== 0) aTotal += aD.profit / aD.sales;
+          if (bD && bD.sales !== 0) bTotal += bD.profit / bD.sales;
+        });
+        return aTotal - bTotal;
+      });
+
+      var html = '<thead><tr><th>Sub-Category</th>';
+      regions.forEach(function(r) { html += '<th>' + r + '</th>'; });
+      html += '</tr></thead><tbody>';
+
+      subCatList.forEach(function(sc) {
+        html += '<tr><td>' + sc + '</td>';
+        regions.forEach(function(r) {
+          var key = sc + '|' + r;
+          var d = data.subCatRegionData[key];
+          var ratio = d && d.sales !== 0 ? d.profit / d.sales : 0;
+          var cls = ratio < 0 ? 'cell-negative' : 'cell-positive';
+          html += '<td class="' + cls + '">' + (ratio * 100).toFixed(0) + '%</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody>';
+      document.getElementById('pivotTable').innerHTML = html;
+    }
+
+    function renderShipChart(data) {
+      destroyChart('shipChart');
+      var modes = ['First Class','Second Class','Same Day','Standard Class'];
+      var ratios = modes.map(function(m) {
+        var d = data.shipModeData[m];
+        return d && d.sales !== 0 ? d.profit / d.sales : 0;
+      });
+      var orders = modes.map(function(m) {
+        var d = data.shipModeData[m];
+        return d ? d.orders : 0;
+      });
+
+      charts['shipChart'] = new Chart(document.getElementById('shipChart'), {
+        type: 'bar',
+        data: {
+          labels: modes,
+          datasets: [
+            { label: 'Profit Ratio', data: ratios, backgroundColor: '#4ecca3', yAxisID: 'y' },
+            { label: 'Order Count', data: orders, backgroundColor: '#e94560', yAxisID: 'y1' }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { labels: { color: '#a0a0a0' } } },
+          scales: {
+            x: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } },
+            y: { position: 'left', ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { color: '#0f3460' } },
+            y1: { position: 'right', ticks: { color: '#a0a0a0' }, grid: { display: false } }
+          }
+        }
+      });
+    }
+
+    function renderStateChart(data) {
+      destroyChart('stateChart');
+      var states = Object.keys(data.stateData).map(function(s) {
+        var d = data.stateData[s];
+        return { state: s, ratio: d.sales !== 0 ? d.profit / d.sales : 0 };
+      });
+      states.sort(function(a,b) { return a.ratio - b.ratio; });
+      var worst10 = states.slice(0, 10);
+
+      charts['stateChart'] = new Chart(document.getElementById('stateChart'), {
+        type: 'bar',
+        data: {
+          labels: worst10.map(function(s) { return s.state; }),
+          datasets: [{ label: 'Profit Ratio', data: worst10.map(function(s) { return s.ratio; }), backgroundColor: '#e94560' }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: { color: '#a0a0a0', callback: function(v) { return fmtPct(v); } }, grid: { color: '#0f3460' } },
+            y: { ticks: { color: '#a0a0a0' }, grid: { color: '#0f3460' } }
+          }
+        }
+      });
+    }
+
+    function renderAovTable(data) {
+      var states = Object.keys(data.stateData).map(function(s) {
+        var d = data.stateData[s];
+        return { state: s, aov: d.orders !== 0 ? d.sales / d.orders : 0 };
+      });
+      states.sort(function(a,b) { return b.aov - a.aov; });
+      var top10 = states.slice(0, 10);
+
+      var html = '<thead><tr><th>#</th><th>State</th><th>Avg Order Value</th></tr></thead><tbody>';
+      top10.forEach(function(s, i) {
+        html += '<tr><td>' + (i+1) + '</td><td>' + s.state + '</td><td>' + fmt(s.aov) + '</td></tr>';
+      });
+      html += '</tbody>';
+      document.getElementById('aovTable').innerHTML = html;
+    }
+
+    loadData();
   </script>
 </body>
 </html>
